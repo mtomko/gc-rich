@@ -13,9 +13,10 @@ lazy val `gc-rich` = project.in(file("."))
         libraries.console4cats,
         libraries.decline,
         libraries.declineEffect,
+        libraries.declineRefined,
         libraries.fs2Core,
         libraries.fs2Io,
-//        libraries.kantanCsv,
+        libraries.refined,
         libraries.scalaTest % Test
       ),
       addCompilerPlugin(libraries.betterMonadicFor)
