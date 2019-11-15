@@ -26,7 +26,8 @@ object GcRich
 
   private[this] val fastqOpt = Opts.option[Path]("fastq", short = "f", help = "The FASTQ file")
 
-  private[this] val bufferSizeOpt = Opts.option[UInt]("buffer", short = "s", help = "The number of bytes to buffer").withDefault(DefaultBufferSize)
+  private[this] val bufferSizeOpt =
+    Opts.option[UInt]("buffer", short = "s", help = "The number of bytes to buffer").withDefault(DefaultBufferSize)
 
   override def main: Opts[IO[ExitCode]] =
     (fastqOpt, bufferSizeOpt).mapN { (f, b) =>
@@ -43,11 +44,14 @@ object GcRich
       rec <- fastqSeqs[F](fastqPath, bufferSize)
     } yield (rec.count(c => c === 'G' || c === 'C').toLong, rec.length.toLong)
 
-  private[this] def fastqSeqs[F[_]: Sync: ContextShift](path: Path, bufferSize: UInt)(implicit blocker: Blocker): Stream[F, String] =
+  private[this] def fastqSeqs[F[_]: Sync: ContextShift](path: Path, bufferSize: UInt)(
+      implicit blocker: Blocker): Stream[F, String] =
     lines[F](path, bufferSize).through(fastqSeq)
 
-  private[this] def lines[F[_]: Sync: ContextShift](p: Path, bufferSize: UInt)(implicit blocker: Blocker): Stream[F, String] =
-    io.file.readAll[F](p, blocker, bufferSize)
+  private[this] def lines[F[_]: Sync: ContextShift](p: Path, bufferSize: UInt)(
+      implicit blocker: Blocker): Stream[F, String] =
+    io.file
+      .readAll[F](p, blocker, bufferSize)
       .through(text.utf8Decode)
       .through(text.lines)
 
