@@ -33,11 +33,18 @@ object GcRich
     (fastqOpt, bufferSizeOpt).mapN { (f, b) =>
       for {
         (num, den) <- statStream[IO](f, b).compile.foldMonoid
-        gc = if (den > 0) num.toDouble / den.toDouble else 0.0
-        _ <- putStrLn(gc)
+        _ <- putStrLn(ratio(num, den, "% GC"))
       } yield ExitCode.Success
     }
 
+  private[this] def ratio(numerator: Long, denominator: Long, label: String): String =
+    if (denominator < 1) "Empty data set"
+    else {
+      val ratio = numerator.toDouble / denominator.toDouble * 100
+      s"$ratio$label"
+    }
+
+  // average # of records is is 130,000,000 - they're frequently as big as 250,000,000
   private[this] def statStream[F[_]: Sync: ContextShift](fastqPath: Path, bufferSize: UInt): Stream[F, (Long, Long)] =
     for {
       implicit0(blocker: Blocker) <- Stream.resource(Blocker[F])
